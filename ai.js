@@ -3,26 +3,33 @@ require('dotenv').config();
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-async function analyzeSiteHealth(metrics) {
+async function chatWithAgent(message, metrics = null) {
     if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === 'YOUR_OPENROUTER_API_KEY_HERE') {
-        return "⚠️ OpenRouter API Key is missing. I cannot generate an AI report. Please add it to your .env file in Railway.";
+        return "⚠️ OpenRouter API Key is missing. I cannot process this request.";
     }
 
-    const prompt = `
-You are the autonomous AI Agent for "Oval Palace Resort". Your job is to analyze site performance metrics and provide a short, professional, and actionable debugging report to the developers.
+    let systemPrompt = `
+You are the autonomous AI Agent for "Oval Palace Resort". Your name is Oval Sentinel.
+Your job is to assist developers, monitor site performance, and answer questions.
+Be professional, concise, and use a slightly technical "SRE / Jarvis" persona.
+    `;
 
-Here are the latest metrics:
+    if (metrics) {
+        systemPrompt += `
+Current live metrics for the server:
 - Status Code: ${metrics.status}
 - Load Time: ${metrics.responseTime}ms
-- Checks Performed: HTTPS Reachability, Server Response Time
-
-Write a 2-3 sentence report on the site's health. If the response time is over 1000ms, suggest checking asset sizes (like images) or server regions. If status is not 200, raise an alert. Use emojis.
-    `;
+If the user asks about health, report these metrics. If response time is high (>1000ms), warn them.
+        `;
+    }
 
     try {
         const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
             model: 'google/gemini-2.5-flash:free',
-            messages: [{ role: 'user', content: prompt }]
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: message }
+            ]
         }, {
             headers: {
                 'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
@@ -38,4 +45,9 @@ Write a 2-3 sentence report on the site's health. If the response time is over 1
     }
 }
 
-module.exports = { analyzeSiteHealth };
+// Backwards compatibility for the original Telegram /report command
+async function analyzeSiteHealth(metrics) {
+    return await chatWithAgent("Please generate a short, professional debugging report based on the current site metrics.", metrics);
+}
+
+module.exports = { analyzeSiteHealth, chatWithAgent };

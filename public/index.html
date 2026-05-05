@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oval Sentinel | AI SRE Agent</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        
+        <!-- Left Sidebar: Status & Metrics -->
+        <aside class="metrics-panel">
+            <div class="brand">
+                <i data-lucide="shield-check" class="brand-icon"></i>
+                <h2>OVAL SENTINEL</h2>
+                <span class="badge">ONLINE</span>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i data-lucide="activity"></i>
+                    <h3>Target System</h3>
+                </div>
+                <div class="metric-value">Oval Palace Resort</div>
+                <a href="https://www.ovalpalaceresort.com" target="_blank" class="metric-sub">www.ovalpalaceresort.com</a>
+            </div>
+
+            <div class="metric-card" id="statusCard">
+                <div class="metric-header">
+                    <i data-lucide="server"></i>
+                    <h3>Live Status</h3>
+                </div>
+                <div class="metric-value status-indicator loading" id="httpStatus">Checking...</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <i data-lucide="zap"></i>
+                    <h3>Response Latency</h3>
+                </div>
+                <div class="metric-value" id="latencyValue">-- ms</div>
+            </div>
+
+            <button class="action-btn" id="refreshBtn">
+                <i data-lucide="refresh-cw"></i> Force Ping
+            </button>
+        </aside>
+
+        <!-- Right Main: Chat Interface -->
+        <main class="chat-panel">
+            <header class="chat-header">
+                <div>
+                    <h2>AI Agent Console</h2>
+                    <p>Powered by OpenRouter & Telegram</p>
+                </div>
+                <i data-lucide="bot" class="agent-icon"></i>
+            </header>
+
+            <div class="chat-window" id="chatWindow">
+                <div class="message agent">
+                    <div class="avatar"><i data-lucide="cpu"></i></div>
+                    <div class="bubble">System initialized. I am Oval Sentinel. How can I assist you with the infrastructure today?</div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" id="chatInput" placeholder="Command the AI agent... (e.g. 'What is the current site health?')">
+                <button id="sendBtn"><i data-lucide="send"></i></button>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

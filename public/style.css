@@ -1,0 +1,298 @@
+:root {
+    --bg-dark: #0a0a0c;
+    --panel-bg: rgba(20, 20, 25, 0.7);
+    --border: rgba(255, 255, 255, 0.08);
+    --accent: #d4af37; /* Oval Palace Gold */
+    --accent-glow: rgba(212, 175, 55, 0.3);
+    --text-main: #e2e8f0;
+    --text-muted: #94a3b8;
+    --success: #10b981;
+    --error: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 50%);
+}
+
+.dashboard-container {
+    display: flex;
+    width: 95vw;
+    max-width: 1400px;
+    height: 90vh;
+    background: var(--panel-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Left Sidebar */
+.metrics-panel {
+    width: 320px;
+    border-right: 1px solid var(--border);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.brand-icon {
+    color: var(--accent);
+}
+
+.brand h2 {
+    font-size: 16px;
+    letter-spacing: 2px;
+    font-weight: 800;
+}
+
+.badge {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.metric-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+.metric-header i {
+    width: 16px;
+    height: 16px;
+}
+
+.metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.metric-sub {
+    font-size: 12px;
+    color: var(--accent);
+    text-decoration: none;
+    display: block;
+    margin-top: 4px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-indicator::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: block;
+}
+
+.status-indicator.loading::before { background: var(--accent); animation: pulse 1.5s infinite; }
+.status-indicator.online::before { background: var(--success); box-shadow: 0 0 10px var(--success); }
+.status-indicator.offline::before { background: var(--error); box-shadow: 0 0 10px var(--error); }
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; box-shadow: 0 0 10px var(--accent); }
+    100% { opacity: 0.5; }
+}
+
+.action-btn {
+    margin-top: auto;
+    background: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    padding: 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+}
+
+/* Right Chat Panel */
+.chat-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.chat-header {
+    padding: 24px 30px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-header h2 {
+    font-size: 18px;
+}
+
+.chat-header p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.agent-icon {
+    color: var(--accent);
+    width: 32px;
+    height: 32px;
+}
+
+.chat-window {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.message {
+    display: flex;
+    gap: 16px;
+    max-width: 80%;
+}
+
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.message.agent .avatar {
+    background: rgba(212, 175, 55, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.message.user .avatar {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+}
+
+.bubble {
+    padding: 16px 20px;
+    border-radius: 16px;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.message.agent .bubble {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-top-left-radius: 4px;
+}
+
+.message.user .bubble {
+    background: var(--text-main);
+    color: var(--bg-dark);
+    border-top-right-radius: 4px;
+    font-weight: 500;
+}
+
+.input-area {
+    padding: 24px 30px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 16px;
+}
+
+.input-area input {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    padding: 18px 24px;
+    border-radius: 16px;
+    color: white;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.input-area input:focus {
+    border-color: var(--accent);
+}
+
+.input-area button {
+    background: var(--accent);
+    color: var(--bg-dark);
+    border: none;
+    width: 56px;
+    border-radius: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.input-area button:hover {
+    transform: scale(1.05);
+}
+
+/* Markdown styling inside bubbles */
+.bubble p { margin-bottom: 10px; }
+.bubble p:last-child { margin-bottom: 0; }
+.bubble strong { color: var(--accent); }
