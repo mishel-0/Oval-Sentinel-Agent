@@ -1,5 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const cron = require('node-cron');
+const express = require('express');
 require('dotenv').config();
 
 const { checkSiteHealth } = require('./monitor');
@@ -68,3 +69,17 @@ cron.schedule('0 10 * * *', async () => {
 });
 
 console.log("✅ Oval Sentinel Agent is online and polling.");
+
+// --- RAILWAY CLOUD HOSTING FIX ---
+// Cloud platforms like Railway terminate apps that do not bind to a PORT.
+// This simple express server satisfies the platform's port-binding health check.
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('Oval Sentinel AI Agent is running 24/7.');
+});
+
+app.listen(PORT, () => {
+    console.log(`🌐 Health check server listening on port ${PORT}`);
+});
