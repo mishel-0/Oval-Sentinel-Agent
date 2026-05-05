@@ -24,6 +24,15 @@ if (!token || token === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
 }
 
 if (bot) {
+    async function safeSend(chatId, text) {
+        try {
+            await bot.sendMessage(chatId, text, { parse_mode: 'Markdown' });
+        } catch (error) {
+            // Fallback to plain text if Telegram rejects the Markdown formatting
+            await bot.sendMessage(chatId, text);
+        }
+    }
+
     bot.onText(/\/start/, (msg) => {
         const chatId = msg.chat.id;
         reportChatId = chatId;
@@ -36,7 +45,7 @@ if (bot) {
         const metrics = await checkSiteHealth();
         let response = `📊 **Live Status**\nURL: ${metrics.url}\nStatus: ${metrics.status}\nLatency: ${metrics.responseTime}ms`;
         if (metrics.error) response += `\n❌ Error: ${metrics.error}`;
-        bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+        safeSend(chatId, response);
     });
 
     bot.onText(/\/report/, async (msg) => {
@@ -44,14 +53,14 @@ if (bot) {
         bot.sendMessage(chatId, "🧠 Fetching metrics and generating AI report...");
         const metrics = await checkSiteHealth();
         const aiReport = await analyzeSiteHealth(metrics);
-        bot.sendMessage(chatId, `📋 **AI Debug Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
+        safeSend(chatId, `📋 **AI Debug Report**\n\n${aiReport}`);
     });
 
     cron.schedule('0 10 * * *', async () => {
         if (!reportChatId) return;
         const metrics = await checkSiteHealth();
         const aiReport = await analyzeSiteHealth(metrics);
-        bot.sendMessage(reportChatId, `🔔 **Automated Daily Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
+        safeSend(reportChatId, `🔔 **Automated Daily Report**\n\n${aiReport}`);
     });
 
     // For any other text message on Telegram, send it to the AI for chat
@@ -61,7 +70,7 @@ if (bot) {
             bot.sendChatAction(chatId, 'typing');
             const metrics = await checkSiteHealth();
             const aiReply = await chatWithAgent(msg.text, metrics);
-            bot.sendMessage(chatId, aiReply, { parse_mode: 'Markdown' });
+            safeSend(chatId, aiReply);
         }
     });
 }
