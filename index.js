@@ -105,7 +105,9 @@ app.get('/api/status', async (req, res) => {
 app.get('/api/bot-status', (req, res) => {
     res.json({ 
         active: !!bot,
-        tokenLength: token ? token.length : 0 
+        tokenLength: token ? token.length : 0,
+        tokenPreview: token ? token.substring(0, 5) + '...' : 'NONE',
+        rawTokenLength: rawToken ? rawToken.length : 0
     });
 });
 

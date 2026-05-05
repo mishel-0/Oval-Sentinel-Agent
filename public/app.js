@@ -103,7 +103,11 @@ async function fetchStatus() {
                 telegramStatus.textContent = 'Connected';
             } else {
                 telegramStatus.className = 'metric-value status-indicator offline';
-                telegramStatus.textContent = 'Token Missing';
+                if (tgData.tokenLength === 0) {
+                    telegramStatus.textContent = 'Token Missing (Len: 0)';
+                } else {
+                    telegramStatus.textContent = `Error (Token: ${tgData.tokenPreview} L:${tgData.tokenLength})`;
+                }
             }
         } catch (e) {
             telegramStatus.className = 'metric-value status-indicator offline';
