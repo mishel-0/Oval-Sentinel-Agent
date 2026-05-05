@@ -9,56 +9,62 @@ const { analyzeSiteHealth, chatWithAgent } = require('./ai');
 
 // --- TELEGRAM BOT SETUP ---
 const token = process.env.TELEGRAM_BOT_TOKEN;
-if (!token || token === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
-    console.error("FATAL: Telegram Bot Token is missing in .env");
-    process.exit(1);
-}
-
-const bot = new TelegramBot(token, { polling: true });
+let bot = null;
 let reportChatId = null;
 
-console.log("🤖 Oval Sentinel Agent is starting up...");
-
-bot.onText(/\/start/, (msg) => {
-    const chatId = msg.chat.id;
-    reportChatId = chatId;
-    bot.sendMessage(chatId, "👋 Welcome! I am Oval Sentinel, your autonomous debugging agent for Oval Palace.\n\nI am now monitoring https://www.ovalpalaceresort.com 24/7.\n\nCommands:\n/status - Instant health check\n/report - Generate an AI debug report");
-});
-
-bot.onText(/\/status/, async (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "⏳ Pinging servers...");
-    const metrics = await checkSiteHealth();
-    let response = `📊 **Live Status**\nURL: ${metrics.url}\nStatus: ${metrics.status}\nLatency: ${metrics.responseTime}ms`;
-    if (metrics.error) response += `\n❌ Error: ${metrics.error}`;
-    bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
-});
-
-bot.onText(/\/report/, async (msg) => {
-    const chatId = msg.chat.id;
-    bot.sendMessage(chatId, "🧠 Fetching metrics and generating AI report...");
-    const metrics = await checkSiteHealth();
-    const aiReport = await analyzeSiteHealth(metrics);
-    bot.sendMessage(chatId, `📋 **AI Debug Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
-});
-
-cron.schedule('0 10 * * *', async () => {
-    if (!reportChatId) return;
-    const metrics = await checkSiteHealth();
-    const aiReport = await analyzeSiteHealth(metrics);
-    bot.sendMessage(reportChatId, `🔔 **Automated Daily Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
-});
-
-// For any other text message on Telegram, send it to the AI for chat
-bot.on('message', async (msg) => {
-    if (msg.text && !msg.text.startsWith('/')) {
-        const chatId = msg.chat.id;
-        bot.sendChatAction(chatId, 'typing');
-        const metrics = await checkSiteHealth();
-        const aiReply = await chatWithAgent(msg.text, metrics);
-        bot.sendMessage(chatId, aiReply, { parse_mode: 'Markdown' });
+if (!token || token === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
+    console.error("⚠️ WARNING: Telegram Bot Token is missing. The Telegram bot feature will be disabled, but the Web Dashboard will continue to run.");
+} else {
+    try {
+        bot = new TelegramBot(token, { polling: true });
+        console.log("🤖 Oval Sentinel Telegram Bot is starting up...");
+    } catch (err) {
+        console.error("⚠️ WARNING: Failed to start Telegram Bot:", err.message);
     }
-});
+}
+
+if (bot) {
+    bot.onText(/\/start/, (msg) => {
+        const chatId = msg.chat.id;
+        reportChatId = chatId;
+        bot.sendMessage(chatId, "👋 Welcome! I am Oval Sentinel, your autonomous debugging agent for Oval Palace.\n\nI am now monitoring https://www.ovalpalaceresort.com 24/7.\n\nCommands:\n/status - Instant health check\n/report - Generate an AI debug report");
+    });
+
+    bot.onText(/\/status/, async (msg) => {
+        const chatId = msg.chat.id;
+        bot.sendMessage(chatId, "⏳ Pinging servers...");
+        const metrics = await checkSiteHealth();
+        let response = `📊 **Live Status**\nURL: ${metrics.url}\nStatus: ${metrics.status}\nLatency: ${metrics.responseTime}ms`;
+        if (metrics.error) response += `\n❌ Error: ${metrics.error}`;
+        bot.sendMessage(chatId, response, { parse_mode: 'Markdown' });
+    });
+
+    bot.onText(/\/report/, async (msg) => {
+        const chatId = msg.chat.id;
+        bot.sendMessage(chatId, "🧠 Fetching metrics and generating AI report...");
+        const metrics = await checkSiteHealth();
+        const aiReport = await analyzeSiteHealth(metrics);
+        bot.sendMessage(chatId, `📋 **AI Debug Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
+    });
+
+    cron.schedule('0 10 * * *', async () => {
+        if (!reportChatId) return;
+        const metrics = await checkSiteHealth();
+        const aiReport = await analyzeSiteHealth(metrics);
+        bot.sendMessage(reportChatId, `🔔 **Automated Daily Report**\n\n${aiReport}`, { parse_mode: 'Markdown' });
+    });
+
+    // For any other text message on Telegram, send it to the AI for chat
+    bot.on('message', async (msg) => {
+        if (msg.text && !msg.text.startsWith('/')) {
+            const chatId = msg.chat.id;
+            bot.sendChatAction(chatId, 'typing');
+            const metrics = await checkSiteHealth();
+            const aiReply = await chatWithAgent(msg.text, metrics);
+            bot.sendMessage(chatId, aiReply, { parse_mode: 'Markdown' });
+        }
+    });
+}
 
 
 // --- EXPRESS WEB SERVER & API SETUP ---
