@@ -1,11 +1,10 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-
 async function chatWithAgent(message, metrics = null) {
+    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
     if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === 'YOUR_OPENROUTER_API_KEY_HERE') {
-        return "⚠️ OpenRouter API Key is missing. I cannot process this request.";
+        return "⚠️ OpenRouter API Key is missing. I cannot process this request. Please add OPENROUTER_API_KEY to your Railway variables.";
     }
 
     let systemPrompt = `
