@@ -12,10 +12,30 @@ async function checkSiteHealth() {
         });
         const endTime = Date.now();
         
+        // Deep Debugging & Vulnerability Analysis
+        const headers = response.headers;
+        const securityReport = {
+            hasHSTS: !!headers['strict-transport-security'],
+            hasXFrameOptions: !!headers['x-frame-options'],
+            hasCSP: !!headers['content-security-policy'],
+            isHttps: TARGET_URL.startsWith('https://')
+        };
+        
+        // Measure Payload Size in KB
+        const payloadSizeKB = response.data ? (Buffer.byteLength(response.data, 'utf8') / 1024).toFixed(2) : 0;
+
+        let vulnerabilityWarnings = [];
+        if (!securityReport.hasHSTS) vulnerabilityWarnings.push("Missing HSTS (Strict-Transport-Security)");
+        if (!securityReport.hasXFrameOptions) vulnerabilityWarnings.push("Missing X-Frame-Options (Clickjacking vulnerability)");
+        if (!securityReport.hasCSP) vulnerabilityWarnings.push("Missing Content-Security-Policy (XSS vulnerability)");
+        if (payloadSizeKB > 2000) vulnerabilityWarnings.push(`Heavy HTML Payload (${payloadSizeKB}KB) - Optimize immediately`);
+
         return {
             status: response.status,
             responseTime: endTime - startTime,
             url: TARGET_URL,
+            payloadSizeKB: payloadSizeKB,
+            vulnerabilities: vulnerabilityWarnings.length > 0 ? vulnerabilityWarnings : ["No severe vulnerabilities detected"],
             error: null
         };
     } catch (error) {
@@ -23,6 +43,7 @@ async function checkSiteHealth() {
             status: error.response ? error.response.status : 'Network Error',
             responseTime: Date.now() - startTime,
             url: TARGET_URL,
+            vulnerabilities: ["Failed to scan site"],
             error: error.message
         };
     }

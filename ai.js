@@ -9,25 +9,32 @@ async function chatWithAgent(message, metrics = null) {
 
     let systemPrompt = `
 You are the autonomous AI Agent for "Oval Palace Resort". Your name is Oval Sentinel.
-Your job is to assist developers, monitor site performance, and answer questions.
-Be professional, concise, and use a slightly technical "SRE / Jarvis" persona.
+Your job is to assist developers, monitor site performance, perform deep vulnerability debugging, and answer ALL questions with high reasoning.
+Be professional, concise, and use an advanced "Cybersecurity / SRE / Jarvis" persona.
+Always respond to every message, even if it's just "hi".
     `;
 
     if (metrics) {
         systemPrompt += `
-Current live metrics for the server:
+Current live diagnostic metrics for the server:
 - Status Code: ${metrics.status}
 - Load Time: ${metrics.responseTime}ms
-If the user asks about health, report these metrics. If response time is high (>1000ms), warn them.
+- HTML Payload Size: ${metrics.payloadSizeKB || 0} KB
+
+SECURITY & VULNERABILITY REPORT:
+${metrics.vulnerabilities ? metrics.vulnerabilities.map(v => "- " + v).join('\n') : "No scan data"}
+
+If the user asks about health, debugging, or vulnerabilities, analyze these metrics with high reasoning. Propose immediate fixes for any detected vulnerabilities.
         `;
     }
 
-    // Array of active free models on OpenRouter
+    // Array of the BEST free reasoning models on OpenRouter
     const fallbackModels = [
+        'nousresearch/hermes-3-llama-3.1-405b:free',
+        'meta-llama/llama-3.3-70b-instruct:free',
+        'openai/gpt-oss-120b:free',
         'google/gemma-4-31b-it:free',
-        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
-        'poolside/laguna-m.1:free',
-        'meta-llama/llama-3.2-3b-instruct:free'
+        'nvidia/nemotron-3-super-120b-a12b:free'
     ];
 
     let lastError = null;
@@ -59,8 +66,14 @@ If the user asks about health, report these metrics. If response time is high (>
     }
 
     // If ALL models fail, return the final error
-    const errObj = lastError.response?.data?.error;
-    const msg = errObj ? errObj.message : lastError.message;
+    const errObj = lastError?.response?.data?.error;
+    const msg = errObj ? errObj.message : lastError?.message || "Unknown error";
+    
+    // Specifically handle the OpenRouter Daily Limit error
+    if (msg.includes("free-models-per-day") || msg.includes("Rate limit exceeded")) {
+        return `❌ **SYSTEM HALTED: OPENROUTER DAILY LIMIT REACHED** ❌\n\nYour API Key has hit the maximum allowed free requests for today.\n\n*To fix this instantly:* Go to [openrouter.ai/settings/integrations](https://openrouter.ai/settings/integrations) and add a minimal credit balance (even just $5). This instantly unlocks 1,000 free requests per day.`;
+    }
+
     return `❌ AI Core Offline: All free models are currently rate-limited upstream. Last error: ${msg}`;
 }
 
