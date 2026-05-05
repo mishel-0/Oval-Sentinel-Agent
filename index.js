@@ -8,7 +8,9 @@ const { checkSiteHealth } = require('./monitor');
 const { analyzeSiteHealth, chatWithAgent } = require('./ai');
 
 // --- TELEGRAM BOT SETUP ---
-const token = process.env.TELEGRAM_BOT_TOKEN;
+const rawToken = process.env.TELEGRAM_BOT_TOKEN || '';
+const token = rawToken.replace(/['"]/g, '').trim();
+
 let bot = null;
 let reportChatId = null;
 
@@ -18,6 +20,10 @@ if (!token || token === 'YOUR_TELEGRAM_BOT_TOKEN_HERE') {
     try {
         bot = new TelegramBot(token, { polling: true });
         console.log("🤖 Oval Sentinel Telegram Bot is starting up...");
+        
+        bot.on('polling_error', (error) => {
+            console.error(`[Telegram Polling Error] ${error.code}: ${error.message}`);
+        });
     } catch (err) {
         console.error("⚠️ WARNING: Failed to start Telegram Bot:", err.message);
     }
