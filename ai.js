@@ -22,26 +22,46 @@ If the user asks about health, report these metrics. If response time is high (>
         `;
     }
 
-    try {
-        const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-            model: 'google/gemma-4-31b-it:free',
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: message }
-            ]
-        }, {
-            headers: {
-                'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-                'HTTP-Referer': 'https://ovalpalaceresort.com',
-                'X-Title': 'Oval Sentinel Agent'
-            }
-        });
+    // Array of active free models on OpenRouter
+    const fallbackModels = [
+        'google/gemma-4-31b-it:free',
+        'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+        'poolside/laguna-m.1:free',
+        'meta-llama/llama-3.2-3b-instruct:free'
+    ];
 
-        return response.data.choices[0].message.content;
-    } catch (error) {
-        console.error("OpenRouter API Error:", error.response?.data || error.message);
-        return "❌ Error communicating with OpenRouter API. Please check your API key.";
+    let lastError = null;
+
+    for (const model of fallbackModels) {
+        try {
+            const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+                model: model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: message }
+                ]
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                    'HTTP-Referer': 'https://ovalpalaceresort.com',
+                    'X-Title': 'Oval Sentinel Agent'
+                }
+            });
+
+            const content = response.data.choices[0].message.content;
+            if (!content) throw new Error("Model returned empty response payload");
+            return content;
+        } catch (error) {
+            console.error(`[AI Engine] Model ${model} failed:`, error.response?.data?.error?.message || error.message);
+            lastError = error;
+            // Continue to the next model in the fallback array
+        }
     }
+
+    // If ALL models fail, return the final error
+    const errObj = lastError.response?.data?.error;
+    const msg = errObj ? errObj.message : lastError.message;
+    return `❌ AI Core Offline: All free models are currently rate-limited upstream. Last error: ${msg}`;
 }
 
 // Backwards compatibility for the original Telegram /report command
