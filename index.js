@@ -72,11 +72,17 @@ if (bot) {
     // For any other text message on Telegram, send it to the AI for chat
     bot.on('message', async (msg) => {
         if (msg.text && !msg.text.startsWith('/')) {
-            const chatId = msg.chat.id;
-            bot.sendChatAction(chatId, 'typing');
-            const metrics = await checkSiteHealth();
-            const aiReply = await chatWithAgent(msg.text, metrics);
-            safeSend(chatId, aiReply);
+            try {
+                const chatId = msg.chat.id;
+                // Add catch to prevent unhandled rejections if sendChatAction fails
+                bot.sendChatAction(chatId, 'typing').catch(() => {});
+                
+                const metrics = await checkSiteHealth();
+                const aiReply = await chatWithAgent(msg.text, metrics);
+                safeSend(chatId, aiReply);
+            } catch (err) {
+                console.error("[Telegram Error] Failed to process message:", err);
+            }
         }
     });
 }
@@ -93,6 +99,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/status', async (req, res) => {
     const metrics = await checkSiteHealth();
     res.json(metrics);
+});
+
+// API Route: Get Telegram Bot Status
+app.get('/api/bot-status', (req, res) => {
+    res.json({ 
+        active: !!bot,
+        tokenLength: token ? token.length : 0 
+    });
 });
 
 // API Route: Chat with AI Agent

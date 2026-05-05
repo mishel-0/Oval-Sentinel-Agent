@@ -9,6 +9,7 @@ const refreshBtn = document.getElementById('refreshBtn');
 // UI Elements for Status
 const httpStatus = document.getElementById('httpStatus');
 const latencyValue = document.getElementById('latencyValue');
+const telegramStatus = document.getElementById('telegramStatus');
 
 // Add a message to the chat UI
 function appendMessage(role, text) {
@@ -92,6 +93,23 @@ async function fetchStatus() {
         }
         
         latencyValue.textContent = `${data.responseTime} ms`;
+        
+        // Fetch Telegram Status
+        try {
+            const tgRes = await fetch('/api/bot-status');
+            const tgData = await tgRes.json();
+            if (tgData.active) {
+                telegramStatus.className = 'metric-value status-indicator online';
+                telegramStatus.textContent = 'Connected';
+            } else {
+                telegramStatus.className = 'metric-value status-indicator offline';
+                telegramStatus.textContent = 'Token Missing';
+            }
+        } catch (e) {
+            telegramStatus.className = 'metric-value status-indicator offline';
+            telegramStatus.textContent = 'API Error';
+        }
+
     } catch (error) {
         httpStatus.className = 'metric-value status-indicator offline';
         httpStatus.textContent = 'Agent Offline';
