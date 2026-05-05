@@ -59,7 +59,7 @@ If the user asks about health, debugging, or vulnerabilities, analyze these metr
             if (!content) throw new Error("Model returned empty response payload");
             return content;
         } catch (error) {
-            console.error(`[AI Engine] Model ${model} failed:`, error.response?.data?.error?.message || error.message);
+            // Silently fail over to the next backup model
             lastError = error;
             // Continue to the next model in the fallback array
         }
